@@ -1,0 +1,1 @@
+hash = {name: "Sonia", profession: "Software Engineer", city: "Chicago"}
