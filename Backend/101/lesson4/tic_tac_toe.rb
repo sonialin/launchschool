@@ -31,6 +31,22 @@ def show_board(mrks)
   puts ""
 end
 
+def joinor(arr, *punc)
+  if punc.size == 1
+    if arr.size>2
+      new_arr = arr.insert(arr.size - 1, punc).flatten
+
+      new_arr[new_arr.size-2] = new_arr[new_arr.size-2..new_arr.size-1].join(' ')
+      new_arr.pop
+      new_arr.join(',')
+    else
+      arr.join
+    end
+  else
+    arr
+  end
+end
+
 def available_marker_spots(mrks)
   spots_by_index = mrks.each_index.select { |i| mrks[i] == " " }
   spots = []
@@ -64,21 +80,32 @@ loop do
 
   loop do
     puts "You are O and the computer is X"
-    puts "Please choose one spot:"
-    puts "from #{available_marker_spots(markers)}"
+    puts "Please choose one spot from:"
+    p "#{joinor(available_marker_spots(markers), 'or')}"
+    puts ""
 
     user_spot = gets.chomp.to_i - 1
     markers[user_spot] = 'O'
     show_board(markers)
     break if find_winner(markers)
+    break if available_marker_spots(markers).size == 0
 
     computer_spot = available_marker_spots(markers).sample - 1
     markers[computer_spot] = 'X'
     show_board(markers)
     break if find_winner(markers)
+    break if available_marker_spots(markers).size == 0
   end
-  puts "The winner is #{find_winner(markers)}"
+
+  if find_winner(markers)
+    puts "The winner is #{find_winner(markers)}."
+  else
+    puts "It's a tie."
+  end
+
   puts "Would you like to play again?(y/n)"
   play_again = !!(gets.chomp.downcase == 'y')
   break if !play_again
 end
+
+puts joinor([1, 2, 3], "or")
