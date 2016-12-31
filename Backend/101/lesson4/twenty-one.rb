@@ -1,8 +1,3 @@
-# @@computer_hand = []
-# @@player_hand = []
-# @@deck = []
-
-
 def init_game
   @@computer_total = 0
   @@player_total = 0
@@ -31,51 +26,51 @@ def deal(role)
   end
 end
 
-def get_hand_value(role)
+def calculate_hand_value(hand)
   value_without_aces = 0
   final_value = 0
   num_of_aces = 0
 
-  if role == 'computer'
-    @@computer_hand.each do |card|
-      if ['jack', 'queen', 'king'].include? card[1]
-        final_value += 10
-      elsif card[1] == 'ace'
-        final_value += 11
-      else 
-        final_value += card[1].to_i
-      end
+  hand.each do |card|
+    if ['jack', 'queen', 'king'].include? card[1]
+      value_without_aces += 10
+    elsif card[1] == 'ace'
+      num_of_aces += 1
+      value_without_aces += 0
+    else 
+      value_without_aces += card[1].to_i
+    end
+  end
+
+  if num_of_aces > 0
+    num_of_aces_valued_1 = 0
+    num_of_aces_valued_11 = num_of_aces
+
+    loop do
+      final_value = 11 * num_of_aces_valued_11 + 1 * num_of_aces_valued_1 + value_without_aces   
+      break if final_value <= 21 || num_of_aces_valued_1 == num_of_aces
+      num_of_aces_valued_11 -= 1
+      num_of_aces_valued_1 += 1
     end
   else
-    @@player_hand.each do |card|
-      if ['jack', 'queen', 'king'].include? card[1]
-        value_without_aces += 10
-      elsif card[1] == 'ace'
-        num_of_aces += 1
-      else 
-        value_without_aces += card[1].to_i
-      end
-    end
-
-    if num_of_aces > 0
-      num_of_aces_valued_1 = 0
-      num_of_aces_valued_11 = num_of_aces
-      loop do
-        final_value = 11 * num_of_aces_valued_11 + 1 * num_of_aces_valued_1 + value_without_aces
-        break if final_value <= 21
-        num_of_aces_valued_11 -= 1
-        num_of_aces_valued_1 += 1
-      end
-    else
-      final_value = value_without_aces
-    end
-
+    final_value = value_without_aces
   end
+
   return final_value
 end
 
+def get_hand_value(role)
+  if role == 'computer'
+    return calculate_hand_value(@@computer_hand)
+  else
+    return calculate_hand_value(@@player_hand)
+  end
+end
+
 def show_hand()
-  puts "The computer has: " + @@computer_hand.first[1].to_s + " and unknown"
+  require 'active_support/inflector'
+  num_of_unknown_dealer_cards = @@computer_hand.size - 1
+  puts "Dealer has: " + @@computer_hand.first[1].to_s + " and " +  num_of_unknown_dealer_cards.to_s + " unknown " + "card".pluralize(num_of_unknown_dealer_cards)
   player_string = ""
   @@player_hand.each do |card|
     player_string << card[1].to_s
@@ -84,6 +79,14 @@ def show_hand()
     end
   end
   puts "You have: " + player_string
+end
+
+def show_full_hand()
+  puts "Dealer's hand is #{@@computer_hand}"
+  puts "Your hand is #{@@player_hand}"
+
+  puts "Dealer's hand's value is #{get_hand_value('computer')}"
+  puts "Your hand's value is #{get_hand_value('player')}"
 end
 
 loop do
@@ -112,21 +115,18 @@ loop do
     deal('computer')
   end
 
-  puts "Dealer's hand is #{@@computer_hand}"
-  puts "Your hand is #{@@player_hand}"
+  show_full_hand()
 
-  puts "Dealer's hand's value is #{get_hand_value('computer')}"
-  puts "Your hand's value is #{get_hand_value('player')}"
-
-  #check whose hand value is greater
   if get_hand_value('player') > 21
     puts "BOO! YOU BUSTED."
     puts "DEALER WINS."
   elsif get_hand_value('computer') > 21
     puts "HA! DEALER BUSTED."
     puts "YOU WIN."
-  elsif get_hand_value('computer') >= get_hand_value('player')
+  elsif get_hand_value('computer') > get_hand_value('player')
     puts "DEALER WINS."
+  elsif get_hand_value('computer') == get_hand_value('player')
+    puts "IT'S A TIE."
   else
     puts "CONGRATS! YOU WIN."
   end
